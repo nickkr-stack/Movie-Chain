@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Цепочка актёров</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f6f8;
+      color: #1f2328;
+    }
+
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid #d9dde3;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .start-screen {
+      max-width: 520px;
+      margin: 48px auto;
+      text-align: center;
+    }
+
+    .start-screen h1 {
+      margin: 0 0 12px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      color: #5f6773;
+      line-height: 1.4;
+    }
+
+    .start-controls {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin: 0 auto 16px;
+      text-align: left;
+      max-width: 220px;
+    }
+
+    .start-controls input {
+      width: 100%;
+      padding: 10px 12px;
+      font-size: 16px;
+      border: 1px solid #c8ced8;
+      border-radius: 10px;
+    }
+
+    .primary-btn,
+    .secondary-btn,
+    .help-btn {
+      border: none;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: background 0.15s ease, opacity 0.15s ease;
+    }
+
+    .primary-btn {
+      background: #1f6feb;
+      color: #fff;
+      padding: 12px 18px;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .primary-btn:hover {
+      background: #1859bb;
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.7;
+      cursor: default;
+    }
+
+    .secondary-btn {
+      background: #eef2f7;
+      color: #1f2328;
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+
+    .secondary-btn:hover {
+      background: #e1e7ef;
+    }
+
+    .secondary-btn:disabled {
+      opacity: 0.55;
+      cursor: default;
+    }
+
+    .help-btn {
+      width: 24px;
+      height: 24px;
+      font-size: 13px;
+      font-weight: bold;
+      background: #eef2f7;
+      color: #1f2328;
+      flex: 0 0 auto;
+      padding: 0;
+    }
+
+    .help-btn:hover {
+      background: #e1e7ef;
+    }
+
+    .status-text {
+      min-height: 20px;
+      margin-top: 12px;
+      color: #5f6773;
+      font-size: 14px;
+    }
+
+    .top-bar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .target-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .actor-block {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .label {
+      font-size: 12px;
+      color: #70798a;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .actor-name,
+    .current-name {
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.2;
+      word-break: break-word;
+    }
+
+    .target-inline,
+    .current-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .arrow {
+      font-size: 24px;
+      font-weight: 700;
+      color: #70798a;
+      flex: 0 0 auto;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .timer-box {
+      margin-left: auto;
+      text-align: right;
+      min-width: 92px;
+    }
+
+    .timer-label {
+      font-size: 12px;
+      color: #70798a;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .timer-value {
+      font-size: 30px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .main-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 16px;
+    }
+
+    .left-column,
+    .right-column {
+      min-width: 0;
+    }
+
+    .current-card {
+      margin-bottom: 16px;
+    }
+
+    .input-area {
+      margin-top: 14px;
+      position: relative;
+    }
+
+    #input {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1px solid #c8ced8;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    #input:focus {
+      border-color: #1f6feb;
+    }
+
+    .suggestions {
+      margin-top: 6px;
+      border: 1px solid #d9dde3;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+      max-height: 280px;
+      overflow-y: auto;
+    }
+
+    .suggestion {
+      padding: 10px 12px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1.3;
+      border-top: 1px solid #eef2f7;
+    }
+
+    .suggestion:first-child {
+      border-top: none;
+    }
+
+    .suggestion:hover {
+      background: #f3f7fc;
+    }
+
+    .message-box {
+      margin-bottom: 16px;
+    }
+
+    .message-box h3 {
+      margin: 0 0 8px;
+    }
+
+    .help-box {
+      min-height: 180px;
+      max-height: 420px;
+      overflow-y: auto;
+    }
+
+    .help-box h4 {
+      margin: 0 0 10px;
+    }
+
+    .help-box div {
+      margin-bottom: 6px;
+      line-height: 1.35;
+      word-break: break-word;
+    }
+
+    .help-placeholder {
+      color: #70798a;
+    }
+
+    .chain-card {
+      position: sticky;
+      top: 16px;
+    }
+
+    .chain-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .chain-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chain-list div {
+      padding-bottom: 8px;
+      border-bottom: 1px solid #eef2f7;
+      word-break: break-word;
+    }
+
+    .chain-list div:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    @media (max-width: 860px) {
+      .main-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .chain-card {
+        position: static;
+      }
+
+      .right-column {
+        order: -1;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app {
+        padding: 10px;
+      }
+
+      .card {
+        padding: 12px;
+        border-radius: 12px;
+      }
+
+      .target-row {
+        align-items: flex-start;
+      }
+
+      .actor-name,
+      .current-name {
+        font-size: 18px;
+      }
+
+      .arrow {
+        font-size: 18px;
+        padding-top: 18px;
+      }
+
+      .timer-box {
+        margin-left: 0;
+        text-align: left;
+      }
+
+      .controls-row {
+        justify-content: flex-start;
+      }
+
+      .secondary-btn {
+        padding: 9px 12px;
+      }
+
+      #input {
+        font-size: 15px;
+        padding: 11px 12px;
+      }
+
+      .suggestion {
+        padding: 11px 12px;
+        font-size: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <div id="startScreen" class="card start-screen">
+      <h1>Цепочка актёров</h1>
+      <p class="subtitle">
+        Соедините двух актёров цепочкой: актёр → фильм → актёр → фильм...
+      </p>
+
+      <div class="start-controls">
+        <label for="timeInput">Время на ход (сек.)</label>
+        <input id="timeInput" type="number" min="5" max="600" value="60" />
+      </div>
+
+      <button id="startButton" class="primary-btn">Начать игру</button>
+      <div id="startStatus" class="status-text"></div>
+    </div>
+
+    <div id="gameScreen" class="game-screen hidden">
+      <div class="top-bar card">
+        <div class="target-row">
+          <div class="actor-block">
+            <div class="label">Старт</div>
+            <div id="actor1" class="actor-name"></div>
+          </div>
+
+          <div class="arrow">→</div>
+
+          <div class="actor-block">
+            <div class="label">Цель</div>
+            <div class="target-inline">
+              <div id="actor2" class="actor-name"></div>
+              <button id="helpTarget" class="help-btn" title="Показать фильмы целевого актёра">?</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls-row">
+          <button id="restart" class="secondary-btn">Начать заново</button>
+          <button id="back" class="secondary-btn">Назад</button>
+
+          <div class="timer-box">
+            <div class="timer-label">Осталось</div>
+            <div id="timer" class="timer-value">60</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="main-layout">
+        <div class="left-column">
+          <div class="card current-card">
+            <div class="current-top">
+              <div>
+                <div class="label">Текущий ход</div>
+                <div class="current-inline">
+                  <span id="current" class="current-name"></span>
+                  <button id="helpCurrent" class="help-btn" title="Показать помощь по текущему объекту">?</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="input-area">
+              <input
+                id="input"
+                type="text"
+                autocomplete="off"
+                placeholder="Введите актёра или фильм"
+              />
+              <div id="suggestions" class="suggestions"></div>
+            </div>
+          </div>
+
+          <div id="messageBox" class="card message-box hidden"></div>
+
+          <div id="helpBox" class="card help-box">
+            <div class="help-placeholder">Здесь будет показана помощь</div>
+          </div>
+        </div>
+
+        <div class="right-column">
+          <div class="card chain-card">
+            <div class="chain-title">Цепочка</div>
+            <div id="chain" class="chain-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const MOVIES_URL = "./tmdb_ru_with_cast_all_titles_disambiguated.json";
+    const ACTORS_URL = "./actors_with_birthyear_for_namesakes.json";
+
+    const MAX_SUGGESTIONS = 25;
+    const MIN_SEARCH_LENGTH = 2;
+
+    let movies = [];
+    let actors = [];
+
+    let actorMap = {};
+    let actorMovies = {};
+    let movieActors = {};
+    let movieYearMap = {};
+
+    let moviesSearch = [];
+    let actorsSearch = [];
+
+    let chain = [];
+    let usedActors = new Set();
+    let usedMovies = new Set();
+
+    let current = null;
+    let targetActor = null;
+
+    let timerInterval = null;
+    let timePerMove = 60;
+    let timeLeft = 60;
+
+    let currentSuggestions = [];
+    let selectedSuggestionIndex = -1;
+
+    let gameState = "idle";
+
+    function normalize(s) {
+      return String(s || "")
+        .toLowerCase()
+        .replace(/ё/g, "е")
+        .trim();
+    }
+
+    function resetStateObjects() {
+      actorMap = {};
+      actorMovies = {};
+      movieActors = {};
+      movieYearMap = {};
+      moviesSearch = [];
+      actorsSearch = [];
+    }
+
+    function buildIndexes() {
+      resetStateObjects();
+
+      for (const actor of actors) {
+        actorMap[actor.id] = actor;
+        if (!actorMovies[actor.id]) {
+          actorMovies[actor.id] = [];
+        }
+      }
+
+      for (const movie of movies) {
+        const title = movie.original_title;
+        movieActors[title] = [];
+        movieYearMap[title] = movie.year ?? null;
+
+        if (Array.isArray(movie.cast)) {
+          for (const castItem of movie.cast) {
+            const actorId = castItem.id;
+            movieActors[title].push(actorId);
+
+            if (!actorMovies[actorId]) {
+              actorMovies[actorId] = [];
+            }
+            actorMovies[actorId].push(title);
+          }
+        }
+      }
+
+      moviesSearch = movies.map((movie) => ({
+        name: movie.original_title,
+        norm: normalize(movie.original_title),
+        year: movie.year ?? null,
+        type: "movie"
+      }));
+
+      actorsSearch = actors.map((actor) => ({
+        id: actor.id,
+        name: actor.name,
+        norm: normalize(actor.name),
+        type: "actor"
+      }));
+    }
+
+    function renderTimer() {
+      document.getElementById("timer").textContent = timeLeft;
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+
+    function startMoveTimer() {
+      stopTimer();
+      timeLeft = timePerMove;
+      renderTimer();
+
+      timerInterval = setInterval(() => {
+        timeLeft -= 1;
+        renderTimer();
+
+        if (timeLeft <= 0) {
+          stopTimer();
+          showLoseState();
+        }
+      }, 1000);
+    }
+
+    function clearSuggestions() {
+      currentSuggestions = [];
+      selectedSuggestionIndex = -1;
+      document.getElementById("suggestions").innerHTML = "";
+    }
+
+    function clearHelpBox() {
+      const box = document.getElementById("helpBox");
+      box.innerHTML = '<div class="help-placeholder">Здесь будет показана помощь</div>';
+    }
+
+    function renderChain() {
+      const box = document.getElementById("chain");
+      box.innerHTML = "";
+
+      for (const item of chain) {
+        const div = document.createElement("div");
+        div.textContent = item.name;
+        box.appendChild(div);
+      }
+    }
+
+    function updateCurrentDisplay() {
+      document.getElementById("current").textContent = current.name;
+    }
+
+    function getRandomStartActors() {
+      const pool = actors.filter((a) => Number(a.movie_count) >= 10);
+
+      if (pool.length < 2) {
+        throw new Error("Недостаточно актёров с movie_count >= 10");
+      }
+
+      const first = pool[Math.floor(Math.random() * pool.length)];
+      let second = pool[Math.floor(Math.random() * pool.length)];
+
+      while (second.id === first.id) {
+        second = pool[Math.floor(Math.random() * pool.length)];
+      }
+
+      return [first, second];
+    }
+
+    function showMessage(title, bodyHtml = "") {
+      const box = document.getElementById("messageBox");
+      box.innerHTML = `
+        <h3>${title}</h3>
+        ${bodyHtml}
+      `;
+      box.classList.remove("hidden");
+    }
+
+    function hideMessage() {
+      const box = document.getElementById("messageBox");
+      box.innerHTML = "";
+      box.classList.add("hidden");
+    }
+
+    function startGame() {
+      const [startActor, endActor] = getRandomStartActors();
+
+      targetActor = endActor;
+
+      chain = [
+        {
+          type: "actor",
+          id: startActor.id,
+          name: startActor.name
+        }
+      ];
+
+      usedActors = new Set([startActor.id]);
+      usedMovies = new Set();
+
+      current = {
+        type: "actor",
+        id: startActor.id,
+        name: startActor.name
+      };
+
+      gameState = "playing";
+
+      document.getElementById("actor1").textContent = startActor.name;
+      document.getElementById("actor2").textContent = endActor.name;
+
+      updateCurrentDisplay();
+      renderChain();
+      clearSuggestions();
+      clearHelpBox();
+      hideMessage();
+
+      const input = document.getElementById("input");
+      input.value = "";
+      input.disabled = false;
+      input.focus();
+
+      document.getElementById("back").disabled = true;
+
+      startMoveTimer();
+    }
+
+    function sortMovieTitles(titles) {
+      return [...titles].sort((a, b) => {
+        const ya = movieYearMap[a];
+        const yb = movieYearMap[b];
+
+        const aHasYear = ya !== null && ya !== undefined && ya !== "";
+        const bHasYear = yb !== null && yb !== undefined && yb !== "";
+
+        if (aHasYear && bHasYear) {
+          if (ya !== yb) return ya - yb;
+          return a.localeCompare(b, "ru");
+        }
+
+        if (aHasYear && !bHasYear) return -1;
+        if (!aHasYear && bHasYear) return 1;
+
+        return a.localeCompare(b, "ru");
+      });
+    }
+
+    function showHelpList(title, items) {
+      const box = document.getElementById("helpBox");
+      box.innerHTML = "";
+
+      const h = document.createElement("h4");
+      h.textContent = title;
+      box.appendChild(h);
+
+      if (!items.length) {
+        const empty = document.createElement("div");
+        empty.textContent = "Ничего не найдено";
+        box.appendChild(empty);
+        return;
+      }
+
+      for (const item of items) {
+        const div = document.createElement("div");
+        div.textContent = item;
+        box.appendChild(div);
+      }
+    }
+
+    function showTargetHelp() {
+      if (!targetActor) return;
+
+      const titles = actorMovies[targetActor.id] || [];
+      const sortedTitles = sortMovieTitles(titles);
+
+      showHelpList(`Фильмы: ${targetActor.name}`, sortedTitles);
+    }
+
+    function showCurrentHelp() {
+      if (!current) return;
+
+      if (current.type === "actor") {
+        const titles = actorMovies[current.id] || [];
+        const sortedTitles = sortMovieTitles(titles);
+        showHelpList(`Фильмы актёра: ${current.name}`, sortedTitles);
+        return;
+      }
+
+      if (current.type === "movie") {
+        const ids = movieActors[current.name] || [];
+        const actorNames = ids
+          .map((id) => actorMap[id]?.name)
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b, "ru"));
+
+        showHelpList(`Актёры фильма: ${current.name}`, actorNames);
+      }
+    }
+
+    function getSuggestions(query) {
+      const normQuery = normalize(query);
+      if (normQuery.length < MIN_SEARCH_LENGTH) return [];
+
+      if (current.type === "actor") {
+        return moviesSearch
+          .filter((item) => !usedMovies.has(item.name) && item.norm.includes(normQuery))
+          .slice(0, MAX_SUGGESTIONS)
+          .map((item) => ({
+            type: "movie",
+            name: item.name
+          }));
+      }
+
+      return actorsSearch
+        .filter((item) => !usedActors.has(item.id) && item.norm.includes(normQuery))
+        .slice(0, MAX_SUGGESTIONS)
+        .map((item) => ({
+          type: "actor",
+          id: item.id,
+          name: item.name
+        }));
+    }
+
+    function renderSuggestions(items) {
+      currentSuggestions = items;
+      selectedSuggestionIndex = -1;
+
+      const box = document.getElementById("suggestions");
+      box.innerHTML = "";
+
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        const div = document.createElement("div");
+        div.className = "suggestion";
+        div.textContent = item.name;
+        div.dataset.index = String(i);
+
+        div.addEventListener("click", () => {
+          applyMove(item);
+          document.getElementById("input").value = "";
+          clearSuggestions();
+        });
+
+        box.appendChild(div);
+      }
+    }
+
+    function refreshSuggestionHighlight() {
+      const nodes = document.querySelectorAll("#suggestions .suggestion");
+      nodes.forEach((node, index) => {
+        node.style.background = index === selectedSuggestionIndex ? "#eef5ff" : "";
+      });
+    }
+
+    function flashInvalid() {
+      const input = document.getElementById("input");
+      input.style.outline = "2px solid #d33";
+      setTimeout(() => {
+        input.style.outline = "";
+      }, 250);
+    }
+
+    function isValidMovieForCurrentActor(movieTitle) {
+      if (!current || current.type !== "actor") return false;
+      const titles = actorMovies[current.id] || [];
+      return titles.includes(movieTitle);
+    }
+
+    function isValidActorForCurrentMovie(actorId) {
+      if (!current || current.type !== "movie") return false;
+      const ids = movieActors[current.name] || [];
+      return ids.includes(actorId);
+    }
+
+    function showWinState() {
+      stopTimer();
+      clearSuggestions();
+      gameState = "won";
+
+      const steps = chain.length - 1;
+      showMessage(
+        "Вы победили",
+        `<div>Длина цепочки: ${steps}</div>
+         <div style="margin-top:10px;">Нажмите "Начать заново", чтобы сыграть ещё раз.</div>`
+      );
+
+      document.getElementById("input").disabled = true;
+    }
+
+    function showLoseState() {
+      clearSuggestions();
+      gameState = "lost";
+
+      showMessage(
+        "Вы проиграли",
+        `<div>Время на ход закончилось.</div>
+         <div style="margin-top:10px;">Нажмите "Начать заново".</div>`
+      );
+
+      document.getElementById("input").disabled = true;
+    }
+
+    function applyMove(item) {
+      if (!current || gameState !== "playing") return;
+
+      if (current.type === "actor") {
+        if (item.type !== "movie") return;
+
+        const movieTitle = item.name;
+
+        if (usedMovies.has(movieTitle)) {
+          flashInvalid();
+          return;
+        }
+
+        if (!isValidMovieForCurrentActor(movieTitle)) {
+          flashInvalid();
+          return;
+        }
+
+        chain.push({
+          type: "movie",
+          name: movieTitle
+        });
+
+        usedMovies.add(movieTitle);
+
+        current = {
+          type: "movie",
+          name: movieTitle
+        };
+
+        updateCurrentDisplay();
+        renderChain();
+        clearHelpBox();
+        document.getElementById("back").disabled = chain.length <= 1;
+        startMoveTimer();
+        return;
+      }
+
+      if (current.type === "movie") {
+        if (item.type !== "actor") return;
+
+        const actorId = item.id;
+        const actorName = actorMap[actorId]?.name;
+
+        if (!actorName) {
+          flashInvalid();
+          return;
+        }
+
+        if (usedActors.has(actorId)) {
+          flashInvalid();
+          return;
+        }
+
+        if (!isValidActorForCurrentMovie(actorId)) {
+          flashInvalid();
+          return;
+        }
+
+        chain.push({
+          type: "actor",
+          id: actorId,
+          name: actorName
+        });
+
+        usedActors.add(actorId);
+
+        current = {
+          type: "actor",
+          id: actorId,
+          name: actorName
+        };
+
+        updateCurrentDisplay();
+        renderChain();
+        clearHelpBox();
+        document.getElementById("back").disabled = chain.length <= 1;
+
+        if (actorId === targetActor.id) {
+          showWinState();
+          return;
+        }
+
+        startMoveTimer();
+      }
+    }
+
+    function trySubmitFromInput() {
+      if (gameState !== "playing") return;
+
+      const input = document.getElementById("input");
+      const raw = input.value;
+      const norm = normalize(raw);
+
+      if (norm.length < MIN_SEARCH_LENGTH) return;
+
+      if (current.type === "actor") {
+        const exactMovie = moviesSearch.find(
+          (item) => !usedMovies.has(item.name) && item.norm === norm
+        );
+
+        if (exactMovie) {
+          applyMove({
+            type: "movie",
+            name: exactMovie.name
+          });
+          input.value = "";
+          clearSuggestions();
+          return;
+        }
+      } else {
+        const exactActor = actorsSearch.find(
+          (item) => !usedActors.has(item.id) && item.norm === norm
+        );
+
+        if (exactActor) {
+          applyMove({
+            type: "actor",
+            id: exactActor.id,
+            name: exactActor.name
+          });
+          input.value = "";
+          clearSuggestions();
+          return;
+        }
+      }
+
+      if (currentSuggestions.length === 1) {
+        applyMove(currentSuggestions[0]);
+        input.value = "";
+        clearSuggestions();
+        return;
+      }
+
+      if (selectedSuggestionIndex >= 0 && currentSuggestions[selectedSuggestionIndex]) {
+        applyMove(currentSuggestions[selectedSuggestionIndex]);
+        input.value = "";
+        clearSuggestions();
+        return;
+      }
+
+      flashInvalid();
+    }
+
+    function updateSuggestionsFromInput() {
+      const input = document.getElementById("input");
+      const value = input.value;
+
+      if (normalize(value).length < MIN_SEARCH_LENGTH) {
+        clearSuggestions();
+        return;
+      }
+
+      const suggestions = getSuggestions(value);
+      renderSuggestions(suggestions);
+    }
+
+    function undoLastMove() {
+      if (chain.length <= 1 || gameState === "idle") return;
+
+      const removed = chain.pop();
+
+      if (removed.type === "actor") {
+        usedActors.delete(removed.id);
+      } else if (removed.type === "movie") {
+        usedMovies.delete(removed.name);
+      }
+
+      const last = chain[chain.length - 1];
+
+      if (last.type === "actor") {
+        current = {
+          type: "actor",
+          id: last.id,
+          name: last.name
+        };
+      } else {
+        current = {
+          type: "movie",
+          name: last.name
+        };
+      }
+
+      if (gameState !== "playing") {
+        gameState = "playing";
+        document.getElementById("input").disabled = false;
+        hideMessage();
+      }
+
+      updateCurrentDisplay();
+      renderChain();
+      clearSuggestions();
+      clearHelpBox();
+
+      const input = document.getElementById("input");
+      input.disabled = false;
+      input.value = "";
+      input.focus();
+
+      document.getElementById("back").disabled = chain.length <= 1;
+    }
+
+    async function loadData() {
+      const [moviesResponse, actorsResponse] = await Promise.all([
+        fetch(MOVIES_URL),
+        fetch(ACTORS_URL)
+      ]);
+
+      if (!moviesResponse.ok) {
+        throw new Error(`Не удалось загрузить ${MOVIES_URL}`);
+      }
+
+      if (!actorsResponse.ok) {
+        throw new Error(`Не удалось загрузить ${ACTORS_URL}`);
+      }
+
+      movies = await moviesResponse.json();
+      actors = await actorsResponse.json();
+
+      buildIndexes();
+    }
+
+    async function handleStartClick() {
+      const startButton = document.getElementById("startButton");
+      const status = document.getElementById("startStatus");
+      const timeInput = document.getElementById("timeInput");
+
+      const parsedTime = Number(timeInput.value);
+      timePerMove = Number.isFinite(parsedTime) && parsedTime > 0 ? parsedTime : 60;
+
+      startButton.disabled = true;
+      status.textContent = "Загрузка данных...";
+
+      try {
+        if (!movies.length || !actors.length) {
+          await loadData();
+        }
+
+        document.getElementById("startScreen").classList.add("hidden");
+        document.getElementById("gameScreen").classList.remove("hidden");
+
+        startGame();
+        status.textContent = "";
+      } catch (error) {
+        console.error(error);
+        status.textContent = "Ошибка загрузки данных. Проверьте, что JSON-файлы лежат в корне репозитория.";
+        startButton.disabled = false;
+      }
+    }
+
+    function handleRestart() {
+      const timeInput = document.getElementById("timeInput");
+      const parsedTime = Number(timeInput.value);
+      timePerMove = Number.isFinite(parsedTime) && parsedTime > 0 ? parsedTime : timePerMove;
+
+      startGame();
+    }
+
+    function wireUi() {
+      document.getElementById("startButton").addEventListener("click", handleStartClick);
+      document.getElementById("helpTarget").addEventListener("click", showTargetHelp);
+      document.getElementById("helpCurrent").addEventListener("click", showCurrentHelp);
+
+      document.getElementById("restart").addEventListener("click", handleRestart);
+
+      document.getElementById("back").addEventListener("click", () => {
+        undoLastMove();
+      });
+
+      const input = document.getElementById("input");
+
+      input.addEventListener("input", () => {
+        updateSuggestionsFromInput();
+      });
+
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          trySubmitFromInput();
+          return;
+        }
+
+        if (e.key === "ArrowDown") {
+          if (!currentSuggestions.length) return;
+          e.preventDefault();
+          selectedSuggestionIndex = Math.min(
+            selectedSuggestionIndex + 1,
+            currentSuggestions.length - 1
+          );
+          refreshSuggestionHighlight();
+          return;
+        }
+
+        if (e.key === "ArrowUp") {
+          if (!currentSuggestions.length) return;
+          e.preventDefault();
+          selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, 0);
+          refreshSuggestionHighlight();
+          return;
+        }
+
+        if (e.key === "Escape") {
+          clearSuggestions();
+        }
+      });
+
+      document.addEventListener("click", (e) => {
+        const inputEl = document.getElementById("input");
+        const suggestionsEl = document.getElementById("suggestions");
+
+        if (!inputEl.contains(e.target) && !suggestionsEl.contains(e.target)) {
+          clearSuggestions();
+        }
+      });
+    }
+
+    wireUi();
+  </script>
+</body>
+</html>
